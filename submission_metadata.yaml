@@ -1,5 +1,5 @@
 # Redrob Hackathon — Submission Metadata (PARAKH)
-# NOTE: fields marked TODO must be filled with your real details before you submit.
+
 
 # ============================================================================
 # Team identity (solo participant)
@@ -8,12 +8,12 @@ team_name: "PARAKH"
 
 primary_contact:
   name: "Ishlok Dwivedi"
-  email: "TODO@example.com"        # TODO: your real contact email (organizer comms)
-  phone: "+91-XXXXXXXXXX"          # TODO: your real phone (top-50 / top-10 outreach)
+  email: "ishlokdwivedi1@gmail.com"
+  phone: "+91-7379248872"
 
 team_members:
   - name: "Ishlok Dwivedi"
-    email: "TODO@example.com"      # TODO
+    email: "ishlokdwivedi1@gmail.com"
     role: "Sole engineer"
 
 # ============================================================================
