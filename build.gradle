@@ -1,0 +1,31 @@
+plugins {
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'java'
+}
+
+group = 'com.parakh'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Core Spring Boot (no web on Day 1 — we run as a CLI via CommandLineRunner).
+    implementation 'org.springframework.boot:spring-boot-starter'
+    // Jackson for streaming JSONL parsing. spring-boot-starter does NOT pull this in,
+    // so we declare it explicitly; the version is managed by Spring Boot's BOM.
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+
+// Produce a predictable jar name: build/libs/parakh.jar
+bootJar {
+    archiveFileName = 'parakh.jar'
+}

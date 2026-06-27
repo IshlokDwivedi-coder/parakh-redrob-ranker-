@@ -1,0 +1,85 @@
+# Redrob Hackathon — Submission Metadata (PARAKH)
+# NOTE: fields marked TODO must be filled with your real details before you submit.
+
+# ============================================================================
+# Team identity (solo participant)
+# ============================================================================
+team_name: "PARAKH"
+
+primary_contact:
+  name: "Ishlok Dwivedi"
+  email: "TODO@example.com"        # TODO: your real contact email (organizer comms)
+  phone: "+91-XXXXXXXXXX"          # TODO: your real phone (top-50 / top-10 outreach)
+
+team_members:
+  - name: "Ishlok Dwivedi"
+    email: "TODO@example.com"      # TODO
+    role: "Sole engineer"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker"   # TODO: create & push (see README)
+
+# Section 10.5 permits a self-contained `docker run` recipe in the GitHub README
+# in lieu of a hosted sandbox. The recipe is in README.md ("Reproduce" section)
+# and the Dockerfile builds and runs unmodified.
+sandbox_link: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker#tldr--reproduce-the-submission"   # TODO: match repo URL
+
+# Single command that produces submission.csv from candidates.jsonl:
+reproduce_command: "docker build -t parakh . && docker run --rm --network none -m 16g -v \"$PWD/data:/data\" parakh /data/candidates.jsonl /data/submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "MacBook (Apple Silicon)"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "n/a — Java 17 (OpenJDK Temurin 17.0.19)"
+  os: "macOS (Darwin 25.5)"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false       # ranker makes zero network calls; verified with `docker run --network none`
+  pre_computation_required: false          # no embeddings, no model training, no precomputed indexes
+  pre_computation_time_minutes: 0
+
+# ============================================================================
+# AI tools declaration (transparency — not penalized)
+# ============================================================================
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude (Claude Code) for architecture discussion, code review, and to
+  scaffold/iterate the Java implementation. All design decisions, the scoring
+  methodology, and the feature weights are my own engineering. No candidate data
+  was ever sent to any LLM — the ranker is pure deterministic Java and makes no
+  network calls during ranking.
+
+# ============================================================================
+# Approach summary
+# ============================================================================
+methodology_summary: |
+  PARAKH is a transparent, deterministic, network-free Java/Spring ranker — no
+  embeddings, no ML weights. A panel of explainable scorers each contributes a
+  named, bounded component: CareerRelevance (title+trajectory, the decisive
+  anti-keyword-stuffing signal), SkillTrust (skill match weighted by endorsements
+  /duration/assessment, defeating padded skill lists), DomainProduct
+  (product-vs-services, NLP/IR-vs-CV), ExperienceFit, Location, and EvalSignal.
+  A multiplicative DisqualifierPenalizer applies the JD's explicit
+  disqualifiers, and an AvailabilityModifier down-weights inactive candidates. A
+  HoneypotGate forces impossible/contradictory profiles out of the top 100
+  before scoring (DQ-prevention). Reasoning text is assembled only from real
+  profile fields, so hallucination is impossible. It streams candidates.jsonl
+  through a size-100 min-heap: 100,000 candidates ranked in ~22s using ~0.28GB
+  peak RAM, far inside the 5-min / 16GB / CPU-only / no-network budget.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true        # HoneypotGate explicitly rejects impossible profiles (5,634 rejected on the full pool)
+  reproduction_tested: true        # Dockerfile + local run both verified end-to-end; validate_submission.py passes

@@ -1,0 +1,14 @@
+# Keep the build context small and reproducible: ship only the Gradle wrapper,
+# build scripts, and source. Everything else is rebuilt inside the image.
+.git
+.gradle
+.idea
+build
+*.iml
+
+# Never bake data or generated artifacts into the image — they are mounted at
+# runtime via a volume.
+data
+*.jsonl
+*.csv
+!sample_submission.csv
