@@ -19,12 +19,12 @@ team_members:
 # ============================================================================
 # Code and reproducibility
 # ============================================================================
-github_repo: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker"   # TODO: create & push (see README)
+github_repo: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker-"
 
 # Section 10.5 permits a self-contained `docker run` recipe in the GitHub README
 # in lieu of a hosted sandbox. The recipe is in README.md ("Reproduce" section)
 # and the Dockerfile builds and runs unmodified.
-sandbox_link: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker#tldr--reproduce-the-submission"   # TODO: match repo URL
+sandbox_link: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker-#tldr--reproduce-the-submission"   # TODO: match repo URL
 
 # Single command that produces submission.csv from candidates.jsonl:
 reproduce_command: "docker build -t parakh . && docker run --rm --network none -m 16g -v \"$PWD/data:/data\" parakh /data/candidates.jsonl /data/submission.csv"
