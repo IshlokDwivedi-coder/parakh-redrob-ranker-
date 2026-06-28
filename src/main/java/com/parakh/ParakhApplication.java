@@ -41,13 +41,13 @@ public class ParakhApplication implements CommandLineRunner {
     public void run(String... args) {
         Path input = Path.of(args.length > 0 ? args[0] : "candidates.jsonl");
         Path output = Path.of(args.length > 1 ? args[1] : "submission.csv");
-        // Optional 3rd arg: write the explainability dashboard data here. Omitting it keeps the
-        // contest reproduce command (input + output only) byte-for-byte identical.
-        Path dashboardData = args.length > 2 ? Path.of(args[2]) : null;
+        // Optional 3rd arg: write the self-contained explainability dashboard (one .html file) here.
+        // Omitting it keeps the contest reproduce command (input + output only) byte-for-byte identical.
+        Path dashboard = args.length > 2 ? Path.of(args[2]) : null;
 
         if (!Files.exists(input)) {
             System.err.println("ERROR: input file not found: " + input.toAbsolutePath());
-            System.err.println("Usage: java -jar parakh.jar <input.jsonl> <output.csv> [dashboard-data.js]");
+            System.err.println("Usage: java -jar parakh.jar <input.jsonl> <output.csv> [dashboard.html]");
             return;
         }
 
@@ -55,9 +55,9 @@ public class ParakhApplication implements CommandLineRunner {
         System.out.println("PARAKH ranking: " + input.toAbsolutePath());
         RankingEngine.Result result = engine.rank(input);
         writer.write(output, result.top());
-        if (dashboardData != null) {
-            dashboardWriter.write(dashboardData, result);
-            System.out.println("Dashboard data written to " + dashboardData.toAbsolutePath());
+        if (dashboard != null) {
+            dashboardWriter.write(dashboard, result);
+            System.out.println("Dashboard written to " + dashboard.toAbsolutePath());
         }
         double secs = (System.nanoTime() - start) / 1e9;
 
