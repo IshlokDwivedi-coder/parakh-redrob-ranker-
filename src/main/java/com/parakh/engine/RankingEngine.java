@@ -34,6 +34,8 @@ public class RankingEngine {
 
     private static final int TOP_K = 100;
     private static final int SCORE_DECIMALS = 6;
+    /** How many rejected honeypots to keep as a worked-example audit log for the dashboard. */
+    private static final int HONEYPOT_SAMPLE = 30;
 
     private final CandidateReader reader;
     private final ReasoningComposer reasoning;
@@ -61,19 +63,26 @@ public class RankingEngine {
         PriorityQueue<RankedCandidate> heap =
                 new PriorityQueue<>((a, b) -> -RankedCandidate.betterFirst(a, b));
         AtomicLong honeypots = new AtomicLong();
+        // The first HONEYPOT_SAMPLE rejects, in file order (the read is sequential, so this is
+        // deterministic). Used only for the dashboard's "why we rejected these" audit log.
+        List<HoneypotHit> honeypotSample = new ArrayList<>();
 
         long total = reader.stream(input, c -> {
             ScoreBreakdown b = new ScoreBreakdown();
             honeypotGate.evaluate(c, b);
             if (b.isHoneypot()) {
                 honeypots.incrementAndGet();
+                if (honeypotSample.size() < HONEYPOT_SAMPLE) {
+                    honeypotSample.add(new HoneypotHit(c.candidate_id, b.honeypotReason()));
+                }
                 return; // forced out of contention entirely
             }
             for (Evaluator e : additive) e.evaluate(c, b);
             for (Evaluator e : modifiers) e.evaluate(c, b);
 
             double score = round(b.finalScore());
-            RankedCandidate rc = new RankedCandidate(c.candidate_id, score, reasoning.compose(c, b));
+            RankedCandidate rc = new RankedCandidate(
+                    c.candidate_id, score, reasoning.compose(c, b), b.base(), snapshot(b));
 
             if (heap.size() < TOP_K) {
                 heap.offer(rc);
@@ -85,7 +94,7 @@ public class RankingEngine {
 
         List<RankedCandidate> ranked = new ArrayList<>(heap);
         ranked.sort(RankedCandidate::betterFirst);
-        return new Result(ranked, total, honeypots.get());
+        return new Result(ranked, total, honeypots.get(), honeypotSample);
     }
 
     private static double round(double v) {
@@ -93,6 +102,18 @@ public class RankingEngine {
         return Math.round(v * f) / f;
     }
 
+    /** Freezes a breakdown into an output-only list of components (additive first, then modifiers). */
+    private static List<ComponentScore> snapshot(ScoreBreakdown b) {
+        List<ComponentScore> out = new ArrayList<>();
+        b.additiveComponents().forEach(c -> out.add(ComponentScore.additive(c)));
+        b.multiplierComponents().forEach(c -> out.add(ComponentScore.modifier(c)));
+        return out;
+    }
+
+    /** One rejected honeypot, kept for the dashboard audit log. */
+    public record HoneypotHit(String candidateId, String reason) {}
+
     /** Outcome of a ranking pass: the ordered top-100 plus run statistics for the audit log. */
-    public record Result(List<RankedCandidate> top, long totalScored, long honeypotsRejected) {}
+    public record Result(List<RankedCandidate> top, long totalScored, long honeypotsRejected,
+                         List<HoneypotHit> honeypotSample) {}
 }

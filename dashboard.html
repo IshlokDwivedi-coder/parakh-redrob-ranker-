@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PARAKH — Explainable Candidate Ranking</title>
+<!-- Chart.js is used only for the hero chart. If it can't load (offline judge box),
+     the per-candidate CSS breakdown below still renders everything. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --panel2:#0f1730; --line:#26314f;
+    --ink:#eaf0ff; --muted:#9aa7c7; --accent:#5b8cff; --good:#36d399; --bad:#ff5d6c;
+    --c-career:#5b8cff; --c-skill:#36d399; --c-exp:#f2c14e; --c-domain:#c084fc;
+    --c-loc:#22d3ee; --c-eval:#fb923c; --c-other:#7a89b8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+       background:radial-gradient(1200px 600px at 80% -10%,#16224a 0%,var(--bg) 55%);color:var(--ink)}
+  .wrap{max-width:1120px;margin:0 auto;padding:34px 22px 80px}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;
+         border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:26px}
+  .brand h1{margin:0;font-size:34px;letter-spacing:.5px}
+  .brand .sub{color:var(--muted);margin-top:4px}
+  .brand .dev{color:var(--accent);font-weight:600}
+  .jd{font-size:13px;color:var(--muted);text-align:right;max-width:320px}
+  .jd b{color:var(--ink)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:30px}
+  .stat{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+        border-radius:14px;padding:16px 18px}
+  .stat .n{font-size:28px;font-weight:700}
+  .stat .l{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .stat.good .n{color:var(--good)} .stat.bad .n{color:var(--bad)}
+  h2{font-size:18px;margin:34px 0 6px} .hint{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+        border-radius:16px;padding:20px 22px;margin-bottom:18px}
+  #heroChart{max-height:430px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:12.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .cand{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px;background:var(--panel2)}
+  .cand .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .rankbadge{background:var(--accent);color:#06112e;font-weight:800;border-radius:9px;padding:3px 10px;font-size:13px}
+  .cid{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px}
+  .finalscore{margin-left:auto;font-weight:800;font-size:20px}
+  .reason{color:var(--muted);font-size:13.5px;margin:10px 0 14px;border-left:3px solid var(--line);padding-left:12px}
+  table.comp{width:100%;border-collapse:collapse;font-size:13px}
+  table.comp td{padding:5px 8px;vertical-align:middle;border-top:1px solid var(--line)}
+  table.comp td.name{white-space:nowrap;color:var(--ink);font-weight:600}
+  .barwrap{background:#0a1124;border-radius:6px;height:14px;width:100%;overflow:hidden;border:1px solid var(--line)}
+  .bar{height:100%;border-radius:6px}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+  td.ev{color:var(--muted);font-size:12px}
+  .mult{display:inline-block;font-size:11.5px;color:var(--muted);background:#0a1124;border:1px solid var(--line);
+        border-radius:999px;padding:2px 9px;margin:2px 4px 0 0}
+  .mult.b{color:var(--good)} .mult.r{color:var(--bad)}
+  table.hp{width:100%;border-collapse:collapse;font-size:13px}
+  table.hp th,table.hp td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  table.hp th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  table.hp td.id{font-family:ui-monospace,Menlo,monospace;color:var(--bad);white-space:nowrap}
+  footer{color:var(--muted);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+  .err{background:#2a1020;border:1px solid var(--bad);color:#ffd5da;padding:16px 18px;border-radius:12px}
+  code{background:#0a1124;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>PARAKH <span style="font-size:15px;color:var(--muted)">परख</span></h1>
+      <div class="sub">Transparent, deterministic candidate ranking — <span class="dev">no ML · no network · fully auditable</span></div>
+    </div>
+    <div class="jd">Ranking against<br><b id="jdTitle">Senior AI Engineer — Founding Team @ Redrob AI</b></div>
+  </header>
+
+  <div id="content"></div>
+
+  <footer>
+    Every number on this page is produced by the same deterministic Java/Spring engine that writes
+    <code>submission.csv</code>. No score is invented; each component cites a real profile fact.
+  </footer>
+</div>
+
+<!-- Real run output (window.PARAKH_DATA). Regenerate with:
+     java -jar build/libs/parakh.jar data/candidates.jsonl submission.csv dashboard-data.js -->
+<script src="dashboard-data.js"></script>
+<script>
+const COLORS = {
+  CareerRelevance:'var(--c-career)', SkillTrust:'var(--c-skill)', ExperienceFit:'var(--c-exp)',
+  DomainProduct:'var(--c-domain)', Location:'var(--c-loc)', EvalSignal:'var(--c-eval)'
+};
+const HEX = { // resolved hex for Chart.js (can't read CSS vars)
+  CareerRelevance:'#5b8cff', SkillTrust:'#36d399', ExperienceFit:'#f2c14e',
+  DomainProduct:'#c084fc', Location:'#22d3ee', EvalSignal:'#fb923c', _other:'#7a89b8'
+};
+const fmt = n => (Math.round(n*1000)/1000).toFixed(3);
+const pct = n => (n*100).toFixed(1)+'%';
+
+function render(){
+  const root = document.getElementById('content');
+  const D = window.PARAKH_DATA;
+  if(!D){
+    root.innerHTML = '<div class="err"><b>No data loaded.</b> Generate it once with:<br>'
+      + '<code>java -jar build/libs/parakh.jar data/candidates.jsonl submission.csv dashboard-data.js</code>'
+      + '<br>then keep <code>dashboard-data.js</code> next to this file and reload.</div>';
+    return;
+  }
+  document.getElementById('jdTitle').textContent = D.meta.jobTitle;
+  const additiveNames = (D.top[0]?.components||[]).filter(c=>!c.multiplier).map(c=>c.name);
+
+  // ---- hero stats ----
+  let html = '<div class="stats">'
+    + stat(D.meta.totalScored.toLocaleString(), 'Candidates scored')
+    + stat(D.meta.honeypotsRejected.toLocaleString(), 'Honeypots rejected', 'bad')
+    + stat('0', 'Honeypots in final top-100', 'good')
+    + stat(D.meta.topReturned, 'Candidates returned')
+    + '</div>';
+
+  // ---- hero chart ----
+  html += '<h2>Why these '+D.meta.topShown+' rose to the top</h2>'
+    + '<p class="hint">Each bar is a final score, broken into the weighted contribution of every evaluator. '
+    + 'CareerRelevance (weight 0.35) is the decisive anti–keyword-stuffing signal.</p>'
+    + '<div class="card"><canvas id="heroChart"></canvas><div class="legend" id="legend"></div></div>';
+
+  // ---- per-candidate breakdown ----
+  html += '<h2>Full breakdown &amp; grounded reasoning</h2>'
+    + '<p class="hint">Multiplicative modifiers (availability, disqualifiers) scale the additive base — '
+    + 'shown as pills. Reasoning is assembled only from the evidence column, so it cannot hallucinate.</p>';
+  D.top.forEach(c => html += candCard(c));
+
+  // ---- honeypot log ----
+  html += '<h2>Honeypot rejection log <span style="color:var(--muted);font-weight:400;font-size:14px">('
+    + D.honeypots.length + ' of ' + D.meta.honeypotsRejected.toLocaleString() + ' shown)</span></h2>'
+    + '<p class="hint">Impossible profiles caught on internal arithmetic contradictions — not on keywords. '
+    + 'A naive ranker walks straight into these and gets disqualified.</p>'
+    + '<div class="card" style="padding:6px 10px"><table class="hp"><thead><tr><th>Candidate</th><th>Reason rejected</th></tr></thead><tbody>'
+    + D.honeypots.map(h=>'<tr><td class="id">'+esc(h.candidateId)+'</td><td>'+esc(h.reason)+'</td></tr>').join('')
+    + '</tbody></table></div>';
+
+  root.innerHTML = html;
+  drawLegend(additiveNames);
+  drawChart(D, additiveNames);
+}
+
+function stat(n,l,cls){ return '<div class="stat '+(cls||'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+function candCard(c){
+  const mults = c.components.filter(x=>x.multiplier);
+  const adds  = c.components.filter(x=>!x.multiplier);
+  const maxW = Math.max(...adds.map(a=>a.weighted), 0.001);
+  let rows = adds.map(a=>{
+    const col = HEX[a.name]||HEX._other;
+    return '<tr><td class="name">'+esc(a.name)+'</td>'
+      + '<td style="width:38%"><div class="barwrap"><div class="bar" style="width:'+(100*a.weighted/maxW).toFixed(1)+'%;background:'+col+'"></div></div></td>'
+      + '<td class="num">'+fmt(a.raw)+' × '+a.weight+'</td>'
+      + '<td class="num">+'+fmt(a.weighted)+'</td>'
+      + '<td class="ev">'+esc(a.evidence||'')+'</td></tr>';
+  }).join('');
+  let pills = mults.map(m=>{
+    const cls = m.raw>=1 ? 'b' : (m.raw<1 ? 'r':'');
+    return '<span class="mult '+cls+'">'+esc(m.name)+' ×'+fmt(m.raw)+(m.evidence?' · '+esc(m.evidence):'')+'</span>';
+  }).join('');
+  return '<div class="cand"><div class="top">'
+    + '<span class="rankbadge">#'+c.rank+'</span>'
+    + '<span class="cid">'+esc(c.candidateId)+'</span>'
+    + '<span class="finalscore">'+fmt(c.score)+'</span></div>'
+    + '<div class="reason">'+esc(c.reasoning)+'</div>'
+    + '<table class="comp"><tbody>'+rows
+    + '<tr><td class="name">Base (additive)</td><td></td><td class="num"></td><td class="num">'+fmt(c.base)+'</td><td class="ev">before modifiers</td></tr>'
+    + '</tbody></table>'
+    + (pills?'<div style="margin-top:10px">'+pills+'</div>':'')
+    + '</div>';
+}
+
+function drawLegend(names){
+  document.getElementById('legend').innerHTML = names.map(n=>
+    '<span><i class="dot" style="background:'+(HEX[n]||HEX._other)+'"></i>'+esc(n)+'</span>').join('');
+}
+
+function drawChart(D, names){
+  if(typeof Chart === 'undefined') return; // offline: CSS breakdown below already covers it
+  const labels = D.top.map(c=>'#'+c.rank+' '+c.candidateId.replace('CAND_',''));
+  const datasets = names.map(n=>({
+    label:n, backgroundColor:HEX[n]||HEX._other, borderWidth:0,
+    data: D.top.map(c=>{ const f=c.components.find(x=>x.name===n&&!x.multiplier); return f?f.weighted:0; })
+  }));
+  new Chart(document.getElementById('heroChart'), {
+    type:'bar',
+    data:{labels,datasets},
+    options:{
+      indexAxis:'y', responsive:true,
+      scales:{
+        x:{stacked:true,grid:{color:'#1c2747'},ticks:{color:'#9aa7c7'},title:{display:true,text:'Weighted score contribution',color:'#9aa7c7'}},
+        y:{stacked:true,grid:{display:false},ticks:{color:'#eaf0ff',font:{family:'ui-monospace,Menlo,monospace'}}}
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': +'+fmt(ctx.parsed.x)}}
+      }
+    }
+  });
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+render();
+</script>
+</body>
+</html>
