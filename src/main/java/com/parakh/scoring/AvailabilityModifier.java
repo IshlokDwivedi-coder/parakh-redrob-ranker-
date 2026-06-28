@@ -21,24 +21,27 @@ public class AvailabilityModifier implements Evaluator {
     public void evaluate(Candidate c, ScoreBreakdown b) {
         Candidate.RedrobSignals s = c.signals();
 
-        // Login recency
+        // Login recency. A genuinely active candidate (within ~6 weeks) should NOT be taxed at all —
+        // the old 30-day cliff docked even a 32-days-ago candidate 8%, so availability was quietly
+        // re-ordering the strong top tier instead of just down-weighting the truly stale (the JD's intent).
         long days = Profiles.daysSinceActive(c);
         double recency;
-        if (days <= 30) recency = 1.0;
-        else if (days <= 90) recency = 0.92;
-        else if (days <= 180) recency = 0.78;
-        else if (days <= 365) recency = 0.55;
-        else recency = 0.3;
+        if (days <= 45) recency = 1.0;
+        else if (days <= 90) recency = 0.95;
+        else if (days <= 180) recency = 0.82;
+        else if (days <= 365) recency = 0.60;
+        else recency = 0.35;
 
-        // Recruiter responsiveness: 0% -> 0.5, 100% -> 1.0
+        // Recruiter responsiveness: 0% -> 0.5, 100% -> 1.0. Kept deliberately steep at the low end so
+        // the JD's worked example (stale 6mo + 5% response) still lands near the intended ×0.3.
         double response = 0.5 + 0.5 * clamp01(s.recruiter_response_rate);
 
-        // Open-to-work and notice period
-        double otw = s.open_to_work_flag ? 1.0 : 0.85;
+        // Open-to-work and notice period. A standard ≤60-day notice is normal hiring, not a penalty.
+        double otw = s.open_to_work_flag ? 1.0 : 0.80;
         double notice;
-        if (s.notice_period_days <= 30) notice = 1.0;
-        else if (s.notice_period_days <= 90) notice = 0.95;
-        else if (s.notice_period_days <= 150) notice = 0.88;
+        if (s.notice_period_days <= 60) notice = 1.0;
+        else if (s.notice_period_days <= 90) notice = 0.97;
+        else if (s.notice_period_days <= 150) notice = 0.90;
         else notice = 0.82;
 
         double mult = recency * response * otw * notice;
