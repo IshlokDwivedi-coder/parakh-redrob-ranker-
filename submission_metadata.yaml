@@ -16,10 +16,10 @@ team_members:
     email: "ishlokdwivedi1@gmail.com"
     role: "Architecture & engineering (primary contact)"
   - name: "Krishna Singh"
-    email: ""                       # TODO: add Krishna's registered email
+    email: "ks58596061@gmail.com"
     role: "Evaluation & methodology"
   - name: "Harsh Dwivedi"
-    email: ""                       # TODO: add Harsh's registered email
+    email: "harshdev935@gmail.com"
     role: "Data & validation"
 
 # ============================================================================
