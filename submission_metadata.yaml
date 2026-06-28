@@ -2,7 +2,7 @@
 
 
 # ============================================================================
-# Team identity (solo participant)
+# Team identity
 # ============================================================================
 team_name: "PARAKH"
 
@@ -14,7 +14,13 @@ primary_contact:
 team_members:
   - name: "Ishlok Dwivedi"
     email: "ishlokdwivedi1@gmail.com"
-    role: "Sole engineer"
+    role: "Architecture & engineering (primary contact)"
+  - name: "Krishna Singh"
+    email: ""                       # TODO: add Krishna's registered email
+    role: "Evaluation & methodology"
+  - name: "Harsh Dwivedi"
+    email: ""                       # TODO: add Harsh's registered email
+    role: "Data & validation"
 
 # ============================================================================
 # Code and reproducibility
@@ -24,7 +30,7 @@ github_repo: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker-"
 # Section 10.5 permits a self-contained `docker run` recipe in the GitHub README
 # in lieu of a hosted sandbox. The recipe is in README.md ("Reproduce" section)
 # and the Dockerfile builds and runs unmodified.
-sandbox_link: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker-#tldr--reproduce-the-submission"   # TODO: match repo URL
+sandbox_link: "https://github.com/IshlokDwivedi-coder/parakh-redrob-ranker-#tldr--reproduce-the-submission"   # verified: anchor matches README "TL;DR — reproduce the submission" heading
 
 # Single command that produces submission.csv from candidates.jsonl:
 reproduce_command: "docker build -t parakh . && docker run --rm --network none -m 16g -v \"$PWD/data:/data\" parakh /data/candidates.jsonl /data/submission.csv"
@@ -52,9 +58,9 @@ ai_tools_used:
 ai_usage_summary: |
   Used Claude (Claude Code) for architecture discussion, code review, and to
   scaffold/iterate the Java implementation. All design decisions, the scoring
-  methodology, and the feature weights are my own engineering. No candidate data
-  was ever sent to any LLM — the ranker is pure deterministic Java and makes no
-  network calls during ranking.
+  methodology, and the feature weights are the team's own engineering. No
+  candidate data was ever sent to any LLM — the ranker is pure deterministic
+  Java and makes no network calls during ranking.
 
 # ============================================================================
 # Approach summary

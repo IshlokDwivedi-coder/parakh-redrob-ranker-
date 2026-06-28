@@ -136,6 +136,14 @@ src/main/java/com/parakh/
 Dependencies (Spring Boot 3.3.5 + Jackson) are declared in `build.gradle` and
 resolved from Maven Central at build time only.
 
+## Team — PARAKH
+
+| Member | Focus |
+| --- | --- |
+| **Ishlok Dwivedi** | Architecture & engineering (primary contact) |
+| **Krishna Singh** | Evaluation & methodology |
+| **Harsh Dwivedi** | Data & validation |
+
 ## AI tools
 
 Built with AI assistance (see `submission_metadata.yaml`). **No candidate data
