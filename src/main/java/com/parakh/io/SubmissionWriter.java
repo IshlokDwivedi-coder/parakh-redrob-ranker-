@@ -11,10 +11,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Writes the exact submission CSV the official validator demands: UTF-8, header
- * {@code candidate_id,rank,score,reasoning}, then 100 rows, rank 1..100, score non-increasing,
- * ties broken by candidate_id ascending. The ranked list arrives already in that order from the
- * engine; here we just number it and RFC-4180-quote the reasoning (which can contain commas).
+ * Writes the submission CSV exactly the way the official validator wants it: UTF-8, the header
+ * candidate_id,rank,score,reasoning, then 100 rows with rank 1..100, scores non-increasing, and
+ * ties broken by candidate_id. The list already comes in that order from the engine, so here we
+ * just number the rows and quote the reasoning properly (it can contain commas).
  */
 @Service
 public class SubmissionWriter {
@@ -39,7 +39,7 @@ public class SubmissionWriter {
         }
     }
 
-    /** RFC-4180 quote: wrap in quotes, double any internal quotes, strip newlines. */
+    /** CSV-quote a field: wrap it in quotes, double any quotes inside, drop newlines. */
     private static String csv(String field) {
         String s = field == null ? "" : field.replace("\r", " ").replace("\n", " ");
         return '"' + s.replace("\"", "\"\"") + '"';

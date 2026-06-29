@@ -13,12 +13,12 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * PARAKH (परख — "to assess true quality"): a transparent, deterministic, network-free candidate
- * ranker for the Redrob Intelligent Candidate Discovery & Ranking Challenge.
+ * Main entry point. Reads candidates.jsonl, ranks the top 100 for the Redrob
+ * "Senior AI Engineer" role and writes submission.csv. No ML model, no network -
+ * just the JSON profile fields run through a panel of scorers.
  *
- * <p>Runs as a one-shot CLI:
- * <pre>  java -jar parakh.jar &lt;input.jsonl&gt; &lt;output.csv&gt;</pre>
- * Defaults: {@code ./candidates.jsonl} -> {@code ./submission.csv}.
+ * Usage: java -jar parakh.jar <input.jsonl> <output.csv> [dashboard.html]
+ * No args defaults to candidates.jsonl and submission.csv.
  */
 @SpringBootApplication
 public class ParakhApplication implements CommandLineRunner {
@@ -41,8 +41,7 @@ public class ParakhApplication implements CommandLineRunner {
     public void run(String... args) {
         Path input = Path.of(args.length > 0 ? args[0] : "candidates.jsonl");
         Path output = Path.of(args.length > 1 ? args[1] : "submission.csv");
-        // Optional 3rd arg: write the self-contained explainability dashboard (one .html file) here.
-        // Omitting it keeps the contest reproduce command (input + output only) byte-for-byte identical.
+        // optional 3rd arg: HTML dashboard path. leaving it off gives the exact same csv.
         Path dashboard = args.length > 2 ? Path.of(args[2]) : null;
 
         if (!Files.exists(input)) {

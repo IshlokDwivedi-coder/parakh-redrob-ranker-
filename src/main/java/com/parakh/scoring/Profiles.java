@@ -7,17 +7,17 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
 /**
- * Derived, reused views over a {@link Candidate}: lower-cased concatenated text blobs and safe
- * date math. Keeping these here means every scorer reasons over the same normalized strings.
+ * Shared helpers over a Candidate: the lower-cased text blobs the scorers search through, plus
+ * some safe date math. Keeping them here means every scorer works off the same normalised strings.
  */
 public final class Profiles {
 
     private Profiles() {}
 
     /**
-     * Fixed "today" for reproducibility. The ranking must produce identical output in the judges'
-     * offline Docker run (network off, no wall clock dependency), so recency is measured against a
-     * constant, not {@code LocalDate.now()}. Set just past the dataset's latest activity.
+     * A fixed "today" so the run is reproducible. The output has to be identical in the judges'
+     * offline Docker run, so we measure recency against this constant instead of LocalDate.now(),
+     * which would change from one day to the next. Set just after the latest activity in the dataset.
      */
     public static final LocalDate REFERENCE_DATE = LocalDate.of(2026, 6, 27);
 
@@ -45,13 +45,6 @@ public final class Profiles {
         return sb.toString().toLowerCase();
     }
 
-    /** Skill names joined, lower-cased. This is the keyword-stuffing surface we deliberately distrust. */
-    public static String skillText(Candidate c) {
-        StringBuilder sb = new StringBuilder(256);
-        for (Candidate.Skill s : c.skills()) sb.append(s.name()).append(' ');
-        return sb.toString().toLowerCase();
-    }
-
     /** Days since last_active, measured from {@link #REFERENCE_DATE}. Large = stale. {@code Long.MAX} if unparseable. */
     public static long daysSinceActive(Candidate c) {
         LocalDate d = parse(c.signals().last_active_date);
@@ -66,12 +59,5 @@ public final class Profiles {
         } catch (DateTimeParseException e) {
             return null;
         }
-    }
-
-    /** Sum of career-history durations in months (used for internal-consistency / honeypot checks). */
-    public static int totalCareerMonths(Candidate c) {
-        int m = 0;
-        for (Candidate.CareerEntry e : c.careerHistory()) m += Math.max(0, e.duration_months);
-        return m;
     }
 }

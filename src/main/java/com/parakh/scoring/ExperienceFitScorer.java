@@ -4,9 +4,9 @@ import com.parakh.model.Candidate;
 import org.springframework.stereotype.Service;
 
 /**
- * Seniority band fit (weight 0.10). JD: "5–9 years", ideal read-between-the-lines "6–8 years, of
- * which 4–5 in applied ML at product companies." A tent function peaks at 6–8, stays strong across
- * 5–9, and tapers for the too-junior and the likely-moved-into-management over-experienced.
+ * Experience-band fit (weight 0.10). The JD says "5-9 years", with the sweet spot around 6-8 and
+ * 4-5 of those in applied ML at product companies. So this is a tent shape: it peaks at 6-8, stays
+ * strong across 5-9, and tapers off for the too-junior and the very senior (likely on a mgmt track).
  */
 @Service
 public class ExperienceFitScorer implements Evaluator {

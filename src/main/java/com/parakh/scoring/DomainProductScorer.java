@@ -4,10 +4,10 @@ import com.parakh.model.Candidate;
 import org.springframework.stereotype.Service;
 
 /**
- * Domain quality (weight 0.15): did they build at PRODUCT companies, and is their domain NLP/IR
- * rather than CV/speech/robotics? The JD prizes product-company shipping and explicitly de-prioritises
- * CV/speech/robotics-primary profiles. (The hard services-only / CV-primary KILLS are applied
- * multiplicatively in {@link DisqualifierPenalizer}; here we reward the positive domain fit.)
+ * Domain quality (weight 0.15): did they build at product companies, and is their domain NLP/IR
+ * rather than CV/speech/robotics? The JD likes product-company shipping and specifically downplays
+ * CV/speech/robotics-first profiles. The hard penalties for services-only or CV-first careers live
+ * in DisqualifierPenalizer; here we just reward a positive domain fit.
  */
 @Service
 public class DomainProductScorer implements Evaluator {

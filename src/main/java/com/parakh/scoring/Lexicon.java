@@ -3,11 +3,11 @@ package com.parakh.scoring;
 import java.util.Set;
 
 /**
- * The single tuning surface for PARAKH. Every keyword list, company roster, and threshold that
- * encodes "what this JD actually means" lives here, derived directly from job_description.docx.
+ * All the word lists for PARAKH in one place. Every keyword set, company roster, and the cities
+ * the JD cares about live here, taken straight from the job description.
  *
- * <p>Keep judgement OUT of the scorers and IN this file — when we re-tune after a dry run, this is
- * the only place that should change.
+ * The idea is to keep the judgement calls in this one file and out of the scorers, so when we
+ * want to re-tune, this is the only place we have to touch.
  */
 public final class Lexicon {
 
@@ -50,7 +50,7 @@ public final class Lexicon {
             "larsen", "l&t infotech", "persistent systems", "birlasoft", "zensar", "coforge", "nttdata",
             "ntt data");
 
-    // ---- Recognisable product companies (signal, not exhaustive — also use industry != IT Services) ----
+    // ---- Recognisable product companies (a signal, not exhaustive; we also check industry != IT Services) ----
     public static final Set<String> PRODUCT_COMPANIES = Set.of(
             "google", "meta", "facebook", "amazon", "microsoft", "apple", "netflix", "uber", "airbnb",
             "linkedin", "flipkart", "swiggy", "zomato", "ola", "razorpay", "cred", "phonepe", "paytm",
@@ -68,7 +68,7 @@ public final class Lexicon {
             "pune", "noida", "delhi", "new delhi", "ncr", "gurgaon", "gurugram", "ghaziabad",
             "faridabad", "mumbai", "bengaluru", "bangalore", "hyderabad", "chennai");
 
-    /** True if {@code haystack} (lower-cased already) contains any of the needles. */
+    /** true if the (already lower-cased) text contains any of the needles. */
     public static boolean containsAny(String haystackLower, Set<String> needles) {
         for (String n : needles) {
             if (haystackLower.contains(n)) return true;
@@ -76,7 +76,7 @@ public final class Lexicon {
         return false;
     }
 
-    /** Count of DISTINCT needles present in the haystack (already lower-cased). */
+    /** how many distinct needles appear in the (already lower-cased) text. */
     public static int countDistinct(String haystackLower, Set<String> needles) {
         int c = 0;
         for (String n : needles) {

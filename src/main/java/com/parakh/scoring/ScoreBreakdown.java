@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Accumulates the per-evaluator components for one candidate and computes the final score.
+ * Collects the components each scorer produced for one candidate and works out the final score.
  *
- * <p>final = (Σ additive weighted components) × (Π multiplicative modifiers), clamped to [0,1].
- * A honeypot short-circuits everything to a final score of 0 so it can never enter the top 100.
+ * final = (sum of the weighted additive components) * (product of the multipliers), clamped to [0,1].
+ * If a candidate is flagged as a honeypot the score is forced to 0 so it can't reach the top 100.
  */
 public class ScoreBreakdown {
 
@@ -16,12 +16,12 @@ public class ScoreBreakdown {
     private boolean honeypot = false;
     private String honeypotReason = "";
 
-    /** An additive component: contributes {@code weight * raw} to the base. */
+    /** an additive component - adds weight*raw to the base. */
     public void add(ScoreComponent c) {
         additive.add(c);
     }
 
-    /** A multiplicative modifier in [0,1+]; {@code raw} is read directly as the multiplier. */
+    /** a multiplier - raw is used directly as the factor. */
     public void multiply(ScoreComponent c) {
         multipliers.add(c);
     }

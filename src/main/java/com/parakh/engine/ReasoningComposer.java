@@ -9,27 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builds the human-readable {@code reasoning} string for the submission. The challenge's Stage-4
- * manual review samples 10 rows and checks SIX things: specific facts, JD connection, honest concerns,
- * no hallucination, variation across rows, and rank-consistent tone. We satisfy all six by construction:
+ * Builds the reasoning text for each candidate row in the output.
  *
- * <ul>
- *   <li><b>No hallucination</b> — every clause is sourced from an evaluator's grounded evidence phrase;
- *       nothing is invented.</li>
- *   <li><b>Honest concerns</b> — low-scoring components are surfaced as explicit caveats, not hidden.</li>
- *   <li><b>Rank-consistent tone</b> — the opening verdict is chosen from the candidate's final score band,
- *       so a strong pick reads confidently and a filler pick reads critically.</li>
- *   <li><b>Variation</b> — sentence shape is selected deterministically per candidate_id, so adjacent
- *       rows don't share a skeleton (deterministic, so the run stays reproducible).</li>
- * </ul>
+ * It only uses the evidence phrases the scorers already produced, so it can't make up facts.
+ * The opening verdict comes from the candidate's final score, so a strong pick reads
+ * confidently and a weaker one reads more critically. The sentence shape is picked from the
+ * candidate id so neighbouring rows don't all look identical, but the run stays reproducible.
  */
 @Service
 public class ReasoningComposer {
-
-    /** Honeypots never reach the top 100, but compose a reason anyway for the rejection log / audit. */
-    public String composeHoneypot(Candidate c, ScoreBreakdown b) {
-        return "REJECTED as honeypot: " + b.honeypotReason() + ".";
-    }
 
     public String compose(Candidate c, ScoreBreakdown b) {
         Candidate.Profile p = c.profile;
@@ -38,10 +26,10 @@ public class ReasoningComposer {
         double yoe = p == null ? 0 : p.years_of_experience;
         double finalScore = b.finalScore();
 
-        // Deterministic per-candidate variation (String.hashCode is spec-stable across JVMs).
+        // pick one of three sentence shapes from the id (String.hashCode is stable across JVMs)
         int variant = Math.floorMod(c.candidate_id == null ? 0 : c.candidate_id.hashCode(), 3);
 
-        // ---- grounded headline (title @ company, yoe) — three interchangeable shapes ----
+        // headline: title @ company, years of experience
         String head;
         String co = company.isEmpty() ? "" : " @ " + company;
         switch (variant) {
@@ -50,7 +38,7 @@ public class ReasoningComposer {
             default -> head = title + (company.isEmpty() ? "" : " (" + company + ")") + String.format(", %.1fy experience.", yoe);
         }
 
-        // ---- strengths and concerns, sourced ONLY from grounded evidence ----
+        // sort each component into a strength or a concern based on its raw score
         List<String> strengths = new ArrayList<>();
         List<String> concerns = new ArrayList<>();
 
@@ -76,7 +64,7 @@ public class ReasoningComposer {
                 case "Location" -> {
                     if (comp.raw() < 0.60) concerns.add("location needs relocation (" + ev + ")");
                 }
-                default -> { /* EvalSignal kept out of prose to stay tight */ }
+                default -> { /* EvalSignal is left out of the text to keep it short */ }
             }
         }
         for (ScoreComponent m : b.multiplierComponents()) {
@@ -88,13 +76,12 @@ public class ReasoningComposer {
             }
         }
 
-        // ---- verdict lead-in chosen from the score band, so tone matches rank ----
-        // Bands are calibrated to PARAKH's score scale: the full top-100 lands ~0.58-0.87 (these are the
-        // top 0.1% of 100k, so even the bottom of the list is a genuinely good hire — the low band reads
-        // "rounds out the shortlist", never "weak", which would itself be a rank-inconsistent tone.
-        String[] high = {"Strong fit", "Top-tier match", "Clear standout"};         // ~ranks 1-12
-        String[] mid  = {"Solid fit", "Reasonable fit", "Good, not top-tier"};       // ~ranks 13-65
-        String[] low  = {"Lower-shortlist fit", "Borderline for the top 100", "Rounds out the shortlist"}; // ~66-100
+        // verdict word picked from the final-score band so the tone matches the rank.
+        // the whole top-100 lands around 0.58-0.87, and these are the top 0.1% of 100k, so even
+        // the low band stays positive ("rounds out the shortlist") instead of sounding negative.
+        String[] high = {"Strong fit", "Top-tier match", "Clear standout"};
+        String[] mid  = {"Solid fit", "Reasonable fit", "Good, not top-tier"};
+        String[] low  = {"Lower-shortlist fit", "Borderline for the top 100", "Rounds out the shortlist"};
         String verdict = (finalScore >= 0.70 ? high : finalScore >= 0.62 ? mid : low)[variant];
 
         StringBuilder sb = new StringBuilder(240);

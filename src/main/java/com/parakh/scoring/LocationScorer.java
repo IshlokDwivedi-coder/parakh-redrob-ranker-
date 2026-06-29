@@ -4,9 +4,9 @@ import com.parakh.model.Candidate;
 import org.springframework.stereotype.Service;
 
 /**
- * Geographic fit (weight 0.10). Role is Pune/Noida hybrid, open to relocation from Tier-1 Indian
- * cities; "Outside India: case-by-case, we don't sponsor work visas." So India-based scores highest,
- * willing-to-relocate domestic is strong, and abroad-needs-visa is heavily discounted.
+ * Location fit (weight 0.10). The role is Pune/Noida hybrid and open to relocation from the big
+ * Indian cities; outside India is case-by-case and they don't sponsor visas. So India scores
+ * highest, willing-to-relocate within India is strong, and abroad-needs-a-visa is heavily discounted.
  */
 @Service
 public class LocationScorer implements Evaluator {

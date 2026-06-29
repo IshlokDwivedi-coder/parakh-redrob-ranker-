@@ -4,11 +4,11 @@ import com.parakh.model.Candidate;
 import org.springframework.stereotype.Service;
 
 /**
- * The JD's explicit "we do NOT want" list, applied as a MULTIPLICATIVE penalty (not a hard zero —
- * honeypots are the only true zero). A candidate can be relevant on paper yet structurally a bad
- * fit: services-only career, CV/speech/robotics-primary, a title-chaser hopping every ~1.5 years,
- * or someone who has stopped writing code. Each fired rule compounds; floored so it down-weights
- * rather than annihilates.
+ * The JD's explicit "we do not want" list, applied as a multiplier rather than a hard zero
+ * (only honeypots get a true zero). Someone can look relevant on paper but still be a bad fit:
+ * a services-only career, mostly CV/speech/robotics, a job-hopper changing roles every ~1.5
+ * years, or someone who has moved off writing code. Every rule that fires multiplies in, and we
+ * floor the result so a bad fit gets pushed down instead of wiped out entirely.
  */
 @Service
 public class DisqualifierPenalizer implements Evaluator {

@@ -15,16 +15,16 @@ import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Streams candidates.jsonl one line at a time so the 465MB / 100k-row file never lands in memory at
- * once — well within the 16GB / 5-minute compute budget. Supports plain {@code .jsonl} and
- * {@code .jsonl.gz}. Malformed lines are skipped (and counted) rather than aborting the whole run.
+ * Reads candidates.jsonl one line at a time, so the 465MB / 100k-row file never has to sit in
+ * memory all at once - that's how we stay well under the 16GB / 5-minute budget. Handles both
+ * plain .jsonl and .jsonl.gz. A broken line is skipped and counted instead of killing the run.
  */
 @Service
 public class CandidateReader {
 
     private final ObjectReader reader = new ObjectMapper().readerFor(Candidate.class);
 
-    /** Invokes {@code sink} for each parseable candidate. Returns the number of candidates read. */
+    /** calls sink for each candidate we can parse; returns how many we read. */
     public long stream(Path path, Consumer<Candidate> sink) {
         long ok = 0, bad = 0, lineNo = 0;
         try (BufferedReader br = open(path)) {

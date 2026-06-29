@@ -6,14 +6,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 /**
- * DQ-avoidance gate. ~80 "impossible profiles" are seeded in the dataset; if more than 10% of our
- * top 100 are honeypots we are disqualified. Honeypots are perfect-on-paper, so a naive keyword
- * ranker walks straight into them — we instead catch them on INTERNAL ARITHMETIC CONTRADICTIONS a
- * real profile cannot have (you cannot have used a skill longer than you've worked, claim more
- * career than your life allows, or hold a job that ends before it starts).
+ * Disqualification guard. The dataset has ~80 planted "impossible" profiles, and if more than 10%
+ * of our top 100 are honeypots we're disqualified. They look perfect on paper, so we catch them on
+ * arithmetic that can't be true for a real person: a skill used longer than they've worked, more
+ * experience than their age allows, or a job that ends before it starts.
  *
- * <p>High precision is the priority: every check is a hard impossibility, so genuine strong
- * candidates are never flagged. A flagged candidate gets a final score of 0 and cannot enter the top 100.
+ * We tune for precision, not recall - every check is a hard impossibility, so a real strong
+ * candidate never trips it. A flagged profile scores 0 and can't reach the top 100.
  */
 @Service
 public class HoneypotGate implements Evaluator {

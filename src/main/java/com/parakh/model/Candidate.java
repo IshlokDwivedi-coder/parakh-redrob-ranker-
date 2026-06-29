@@ -7,15 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A single candidate profile, mapped 1:1 from a line of candidates.jsonl.
- *
- * <p>Design notes:
- * <ul>
- *   <li>Everything is {@code @JsonIgnoreProperties(ignoreUnknown = true)} so the dataset can add
- *       fields without breaking the parse.</li>
- *   <li>Lists/maps default to empty (never null) via the getters, so scorers never null-check.</li>
- *   <li>Nested static classes keep the whole profile shape in one readable file.</li>
- * </ul>
+ * One candidate, parsed straight from a line of candidates.jsonl. @JsonIgnoreProperties lets us
+ * ignore fields we don't use, and the list/map getters return empty instead of null so the scorers
+ * don't have to null-check everywhere. The nested classes keep the profile shape in one file.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Candidate {

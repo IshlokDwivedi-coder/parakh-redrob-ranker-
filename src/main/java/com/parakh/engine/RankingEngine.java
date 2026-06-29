@@ -22,19 +22,18 @@ import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * The core: stream every candidate through the explainable panel, keep only the best 100 in a
- * bounded min-heap, and emit them ranked. Memory stays O(100) regardless of input size; one pass,
- * no network, no model — trivially inside the 5-minute / 16GB / CPU-only / network-off budget.
+ * The core loop. Streams every candidate through the scorer panel and keeps only the best 100
+ * in a min-heap, so memory stays O(100) however big the file is - one pass, no model, no network.
  *
- * <p>The panel runs in a fixed, defensible order: HoneypotGate first (a flag short-circuits scoring
- * to zero), then the six additive scorers, then the two multiplicative modifiers.
+ * Panel order: HoneypotGate first (a flagged profile scores 0 and is skipped), then the six
+ * additive scorers, then the two multipliers.
  */
 @Service
 public class RankingEngine {
 
     private static final int TOP_K = 100;
     private static final int SCORE_DECIMALS = 6;
-    /** How many rejected honeypots to keep as a worked-example audit log for the dashboard. */
+    /** how many rejected honeypots to keep as a sample for the dashboard log. */
     private static final int HONEYPOT_SAMPLE = 30;
 
     private final CandidateReader reader;
@@ -53,7 +52,7 @@ public class RankingEngine {
         this.reader = reader;
         this.reasoning = reasoning;
         this.honeypotGate = honeypotGate;
-        // Order matters for the narrative and the reasoning prose; CareerRelevance leads.
+        // order matters for the reasoning text; CareerRelevance comes first.
         this.additive = List.of(career, skill, experience, domain, location, eval);
         this.modifiers = List.of(disqualifier, availability);
     }

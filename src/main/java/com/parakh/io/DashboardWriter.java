@@ -16,19 +16,18 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Optional explainability dashboard. Emits ONE fully self-contained {@code .html} file: every bar is
- * pre-rendered server-side as styled markup, so there is no client JavaScript, no external data file,
- * and no CDN. It opens with a double-click and works completely offline — which is also the project's
- * whole point ("no network"). This NEVER touches {@code submission.csv}; the contest output is
- * byte-identical whether or not a dashboard path is supplied.
+ * The optional dashboard. Writes one self-contained .html file where every bar is drawn here in
+ * Java as plain styled markup - no JavaScript, no external data file, no CDN - so it opens with a
+ * double-click and works fully offline, which fits the whole "no network" idea. It never touches
+ * submission.csv: the contest output is the same whether or not you ask for a dashboard.
  */
 @Service
 public class DashboardWriter {
 
-    /** How many ranked candidates to surface in the breakdown. */
+    /** how many of the ranked candidates to show in the breakdown. */
     private static final int TOP_FOR_CHART = 10;
 
-    /** Stable hex per evaluator so the legend, bars, and chips always agree. */
+    /** a fixed colour per scorer so the legend, bars, and chips all match. */
     private static final Map<String, String> COLORS = Map.of(
             "CareerRelevance", "#5b8cff",
             "SkillTrust", "#36d399",

@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Skill match, but TRUST-WEIGHTED (weight 0.20). A listed skill is cheap; the trap candidates list
- * many. We only credit a relevant skill in proportion to the evidence behind it: proficiency,
- * endorsements, how long it's been used, and the Redrob assessment score for that exact skill.
+ * Skill match, but trust-weighted (weight 0.20). Listing a skill is cheap, and the trap
+ * candidates list a lot of them. So we only credit a relevant skill in proportion to the
+ * evidence behind it: proficiency, endorsements, how long they've used it, and the Redrob
+ * assessment score for that exact skill.
  *
- * <p>This is what separates a genuine "Embeddings (expert, 40 endorsements, 4 yrs, assessment 88)"
- * from a stuffed "Embeddings (beginner, 0 endorsements, 2 mo, no assessment)".
+ * That's what tells apart a real "Embeddings (expert, 40 endorsements, 4 yrs, assessment 88)"
+ * from a padded "Embeddings (beginner, 0 endorsements, 2 mo, no assessment)".
  */
 @Service
 public class SkillTrustScorer implements Evaluator {

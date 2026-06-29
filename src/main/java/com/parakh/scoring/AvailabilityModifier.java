@@ -4,13 +4,13 @@ import com.parakh.model.Candidate;
 import org.springframework.stereotype.Service;
 
 /**
- * Behavioral availability (MULTIPLICATIVE). The JD's closing instruction is explicit: "a
- * perfect-on-paper candidate who hasn't logged in for 6 months and has a 5% recruiter response rate
- * is, for hiring purposes, not actually available. Down-weight them appropriately."
+ * Availability, as a multiplier. The JD spells this out: a perfect-on-paper candidate who hasn't
+ * logged in for 6 months and answers 5% of recruiters is, for hiring, not really available, so
+ * down-weight them.
  *
- * <p>We compound four observable behaviors — login recency, recruiter responsiveness, open-to-work,
- * and notice period — into one multiplier on the paper score. Worked example from the JD
- * (stale 6mo + 5% response) lands near ×0.3, exactly the intended heavy discount.
+ * We fold four things we can actually observe - login recency, recruiter response rate,
+ * open-to-work, and notice period - into one multiplier on the paper score. The JD's own example
+ * (gone 6 months, 5% response) lands around x0.3, which is the heavy discount it asks for.
  */
 @Service
 public class AvailabilityModifier implements Evaluator {
@@ -21,9 +21,9 @@ public class AvailabilityModifier implements Evaluator {
     public void evaluate(Candidate c, ScoreBreakdown b) {
         Candidate.RedrobSignals s = c.signals();
 
-        // Login recency. A genuinely active candidate (within ~6 weeks) should NOT be taxed at all —
-        // the old 30-day cliff docked even a 32-days-ago candidate 8%, so availability was quietly
-        // re-ordering the strong top tier instead of just down-weighting the truly stale (the JD's intent).
+        // login recency. someone active in the last ~6 weeks isn't penalised at all; we only start
+        // discounting once they've been away a while, since the JD only wants the genuinely inactive
+        // pushed down, not the strong top tier reshuffled.
         long days = Profiles.daysSinceActive(c);
         double recency;
         if (days <= 45) recency = 1.0;
@@ -32,11 +32,11 @@ public class AvailabilityModifier implements Evaluator {
         else if (days <= 365) recency = 0.60;
         else recency = 0.35;
 
-        // Recruiter responsiveness: 0% -> 0.5, 100% -> 1.0. Kept deliberately steep at the low end so
-        // the JD's worked example (stale 6mo + 5% response) still lands near the intended ×0.3.
+        // recruiter response rate: 0% maps to 0.5, 100% to 1.0. kept steep at the low end so the
+        // JD's example (gone 6mo + 5% response) still lands near x0.3.
         double response = 0.5 + 0.5 * clamp01(s.recruiter_response_rate);
 
-        // Open-to-work and notice period. A standard ≤60-day notice is normal hiring, not a penalty.
+        // open-to-work and notice period. a normal notice of 60 days or less isn't a penalty.
         double otw = s.open_to_work_flag ? 1.0 : 0.80;
         double notice;
         if (s.notice_period_days <= 60) notice = 1.0;

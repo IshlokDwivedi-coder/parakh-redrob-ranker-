@@ -3,10 +3,10 @@ package com.parakh.scoring;
 import com.parakh.model.Candidate;
 
 /**
- * One member of the explainable scoring panel. Each evaluator inspects the candidate and contributes
- * either an additive {@link ScoreComponent}, a multiplicative modifier, or a honeypot flag to the
- * shared {@link ScoreBreakdown}. The panel is transparent by construction: the final number is just
- * the sum of what these nine evaluators decided, with the evidence string of each carried along.
+ * One scorer in the panel. Each one looks at a candidate and adds something to the
+ * shared ScoreBreakdown - either an additive component, a multiplier, or a honeypot
+ * flag. The final score is just the sum of what all the scorers decided, and each one
+ * also leaves behind a short evidence string we reuse for the reasoning text.
  */
 public interface Evaluator {
 

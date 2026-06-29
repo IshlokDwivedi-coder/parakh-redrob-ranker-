@@ -4,10 +4,10 @@ import com.parakh.model.Candidate;
 import org.springframework.stereotype.Service;
 
 /**
- * "Nice-to-haves" and external-validation signals (weight 0.10). The JD lists eval-framework literacy
- * (NDCG/MRR/MAP), open-source / GitHub activity, fine-tuning (LoRA/QLoRA/PEFT), learning-to-rank, and
- * HR-tech exposure as bonuses, and explicitly distrusts people with no external validation. This is a
- * small additive booster, never decisive on its own.
+ * The "nice to have" bonus signals (weight 0.10). The JD lists a few extras it likes: knowing the
+ * ranking metrics (NDCG/MRR/MAP), GitHub/open-source activity, fine-tuning (LoRA/QLoRA/PEFT),
+ * learning-to-rank, and HR-tech experience, and it's wary of people with no outside validation at
+ * all. This is a small additive boost - it can nudge a ranking but never decides it on its own.
  */
 @Service
 public class EvalSignalScorer implements Evaluator {

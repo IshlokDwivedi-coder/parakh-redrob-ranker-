@@ -106,7 +106,7 @@ Top-10 quality is **half** the composite metric (0.50·NDCG@10 + 0.30·NDCG@50 +
 
 ```
 candidate_id,rank,score,reasoning
-CAND_0077337,1,0.772900,"Staff Machine Learning Engineer @ Paytm, 7.0 yrs. ..."
+CAND_0077337,1,0.867579,"Staff Machine Learning Engineer @ Paytm, 7.0y. Strong fit: on-target ranking/retrieval title, ..."
 ```
 
 `rank` is 1..100 (each once), `score` is non-increasing, equal scores are
