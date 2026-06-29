@@ -22,3 +22,12 @@ data/
 
 # Keep a tiny sample for the sandbox demo if you add one:
 !sample.jsonl
+
+# --- Local working files (submitted via the portal, not git) ---
+# ranked output is generated like submission.csv above
+*.xlsx
+# decks + my own prep notes live locally, they go to the portal as PDFs
+approach_deck.html
+ideathon_deck.html
+master_guide.html
+team_commit_guide.html
